@@ -1,0 +1,39 @@
+ {% extends "layout.html" %}
+{% block title%}
+Gerador contrato
+{% endblock %}
+
+{% block main %}
+     <div id="clients-overview" class="table-style">
+            <table class="table table-hover" id="clients">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th class="editable" type="text">store_name</th>
+                        <th class="editable" type="text">address</th>
+                        <th class="editable" type="text">cep</th>
+                        <th class="editable" type="text">cnpj</th>
+                        <th class="editable" type="text">client_name</th>
+                        <th class="editable" type="text">rg</th>
+                        <th class="editable" type="text">cpf</th>
+                        <th class="editable" type="text">email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                        <tr class="clickable">
+                            {% for data in client %}
+                                <td>{{ data }}</td>
+                            {% endfor %}
+                            <td class="edition">
+                                <button class="btn btn-light btn-sm edit">Edit</button>
+                                <button class="btn btn-info btn-sm restore">restore</button>
+                                <button class="btn btn-danger btn-sm remove">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <input type="submit" class="save" value="Save">
+        </div>
+ {% endblock %}
