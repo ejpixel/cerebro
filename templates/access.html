@@ -4,15 +4,17 @@ Access
 {% endblock %}
 
 {% block main %}
-    <form action="/access" method="POST">
-        <div class="form-group">
-            <label for="name">Username</label>
-            <input type="text" id="name" name="name" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="key">Password</label>
-            <input type="password" id="key" name="key" class="form-control" required>
-        </div>
-        <input type="submit" value="Acessar">
-    </form>
+    <div class="container">
+        <form action="/access" method="POST">
+            <div class="form-group">
+                <label for="name">Username</label>
+                <input type="text" id="name" name="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="key">Password</label>
+                <input type="password" id="key" name="key" class="form-control" required>
+            </div>
+            <input type="submit" value="Acessar">
+        </form>
+    </div>
 {% endblock %}
