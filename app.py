@@ -185,7 +185,9 @@ def edit_contracts():
 def accept_contracts():
     complete_request = json.loads(request.get_data().decode("utf-8"))
     for req in complete_request:
-        db.engine.execute("UPDATE services SET acceptance_date=now() WHERE id=%s", req["id"])
+        client_id, description = db.engine.execute("UPDATE services SET acceptance_date=now() WHERE id=%s RETURNING client_id, description", req["id"]).first()
+        store_name, client_name = db.engine.execute("SELECT store_name, client_name from clients WHERE id=%s", client_id).first()
+        event_first_payment(store_name, client_name, description["short_description"])
     return redirect(url_for("access_manager"))
 
 @app.route("/add_payment", methods=["POST"])
@@ -198,6 +200,14 @@ def add_payment():
     service_id = int(request.form["service-id"])
     for i in range(quantity):
         db.engine.execute("INSERT INTO payments(payment, price, service_id) VALUES(%s, %s, %s)", payment + i, price, service_id)
+        client_id, description = db.engine.execute("SELECT client_id, description FROM services WHERE id=%s", service_id)
+        store_name, client_name = db.engine.execute("SELECT store_name, client_name from clients WHERE id=%s",
+                                                    client_id).first()
+        payment_count = db.engine.execute("SELECT count(*) from payments WHERE service_id=%s", service_id).first()[0]
+        service_payment = db.engine.execute("SELECT payment from services WHERE id=%s", service_id).first()[0]
+        if payment_count != service_payment:
+            event_payments(store_name, client_name, description["short_description"])
+
     first_payment = db.engine.execute("SELECT first_payment FROM services WHERE id=%s", service_id).first()[0]
     if first_payment == None:
         db.engine.execute("UPDATE services SET first_payment=now() WHERE id=%s", service_id)
