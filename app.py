@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy as sql
 import hashlib
 from helpers import *
 import json
+from sapixel import *
 
 app = Flask(__name__)
 
