@@ -120,20 +120,20 @@ def normalize_array(array):
 
 
 def event_first_payment(client_store_name, client_name, short_description):
-    start_date = datetime.datetime.now()
+    start_date = datetime.datetime.now() + datetime.timedelta(days=30)
     end_date = datetime.datetime.now() + datetime.timedelta(days=30)
     model = "first_payment"
     new_calendar_event(model, start_date, end_date, client_store_name, client_name, short_description)
 
 
-def event_payments(client_store_name, client_name, short_description):
-    start_date = datetime.datetime.now()
+def event_payments(client_store_name, client_name, short_description, payment):
+    start_date = datetime.datetime.now() + datetime.timedelta(days=30)
     end_date = datetime.datetime.now() + datetime.timedelta(days=30)
     model = "payments"
-    new_calendar_event(model, start_date, end_date, client_store_name, client_name, short_description)
+    new_calendar_event(model, start_date, end_date, client_store_name, client_name, short_description, title=payment)
 
 
-def new_calendar_event(model, start_date, end_date, client_store_name, client_name, short_description):
-    title = f" {client_store_name} de {client_name}"
+def new_calendar_event(model, start_date, end_date, client_store_name, client_name, short_description, title):
+    title = f" {title} {client_store_name} de {client_name}"
     description = " pelo serviço " + short_description
     sapixel.new_calendar_event_from_model(model_name=model, start_date=start_date, end_date=end_date, title=title, description=description)

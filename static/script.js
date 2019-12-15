@@ -32,14 +32,12 @@ $(document).ready(function() {
     $(".clickable").on("input", function() {
         $(this).attr("edited", "true");
     })
-
-    $(".clickable").on('input', '.number', function() {
+        .on('input', '.number', function() {
         if (!/^\d+$/.test($(this).text())) {
             $(this).text($(this).text().replace(/\D/g, ""))
         }
-    });
-
-    $(".clickable").on('input', '.float', function() {
+    })
+        .on('input', '.float', function() {
         if (!/^[0-9]+(?:\.[0-9]{1,2})?$/.test($(this).text())) {
             $(this).text($(this).text().replace(/(?!^[0-9]+(?:\.[0-9]{1,2})?$)/g, ""))
         }

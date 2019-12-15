@@ -1,13 +1,14 @@
 import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+import datetime
 
 ONE_WEEK_IN_MINUTES = int(datetime.timedelta(days=7).total_seconds() / 60)
 ONE_DAY_IN_MINUTES = int(datetime.timedelta(days=1).total_seconds() / 60)
 TZ = "America/Sao_Paulo"
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-CALENDAR_ID = os.getenv("CALENDAR_ID")
+SERVICE_ACCOUNT_FILE = os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+CALENDAR_ID = os.environ["CALENDAR_ID"]
 
 models = {
     "accept_contract": {
@@ -79,6 +80,7 @@ def new_calendar_event_from_model(model_name, start_date, end_date, title="", de
     event["summary"] += title
     event["description"] += description
     create_calendar_event(event)
+
 
 def create_calendar_event(event):
     credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
