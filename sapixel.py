@@ -1,7 +1,6 @@
 import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-import datetime
 
 ONE_WEEK_IN_MINUTES = int(datetime.timedelta(days=7).total_seconds() / 60)
 ONE_DAY_IN_MINUTES = int(datetime.timedelta(days=1).total_seconds() / 60)
