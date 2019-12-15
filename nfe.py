@@ -3,6 +3,10 @@ import requests
 from hashlib import md5
 import lxml.etree
 import lxml.builder
+import os
+from OpenSSL import crypto
+from signxml import XMLSigner, XMLVerifier
+
 
 envs = {
     "prod": "https://nfps-e.pmf.sc.gov.br/api/v1/autenticacao/oauth/token",
@@ -28,37 +32,56 @@ def get_token(client_id, client_secret, username, password, env):
     return response.json()["access_token"]
 
 
-def new_payment(token):
+def new_payment(token, xml_as_string):
     header = {"Authorization": f"Bearer {token}"}
+    requests.post("", data=xml_as_string, header=header)
 
-def gen_xml_payment():
+
+def gen_xml_payment(client_neighborhood, price, client_cep, date, client_email, client_cpf_or_cnpj, client_street, client_store_name, service_description, quantity, aliquota, aedf, cst, cfps, cnae, baseCalcSubst):
+    # token = get_token(os.environ["CLIENT_ID"], os.environ["CLIENT_SECRET"], os.environ["CMC"], os.environ["PASSWORD"])
     E = lxml.builder.ElementMaker()
     service_items = E.itemServico(
-        E.aliquota(aliquota),
-        E.baseCalculo(base_calc),
-        E.cst(cst),
+        E.aliquota(str(aliquota * 100)),
+        E.baseCalculo(str(price * quantity)),
+        E.cst(str(cst)),
         E.descricaoServico(service_description),
-        E.idCNAE(cnae),
-        E.quantidade(quantity),
-        E.valorTotal(total_value),
-        E.valorUnitario(unity_value)
+        E.idCNAE(str(cnae)),
+        E.quantidade(str(quantity)),
+        E.valorTotal(str(price * quantity)),
+        E.valorUnitario(str(price))
     )
     xml_doc = E.xmlNfpse(
         E.bairroTomador(client_neighborhood),
-        E.baseCalculo(int(price)),
-        E.baseCalculoSubstituicao(0),
-        E.cfps(cfps),
+        E.baseCalculo(str(price * quantity)),
+        E.baseCalculoSubstituicao(str(baseCalcSubst)),
+        E.cfps(str(cfps)),
         E.codigoPostalTomador(client_cep),
         E.dataEmissao(date),
         E.emailTomador(client_email),
         E.identificacaoTomador(client_cpf_or_cnpj),
         E.itensServico(service_items),
         E.logradouroTomador(client_street),
-        E.numeroAEDF(aedf),
+        E.numeroAEDF(str(aedf)),
         E.razaoSocialTomador(client_store_name),
-        E.valorISSQN(issqn),
-        E.valorTotalServicos(total_value),
-        E.Signature(signature)
+        E.valorISSQN(str(aliquota * price * quantity)),
+        E.valorTotalServicos(str(price * quantity))
     )
+    xml_doc = insert_signature(xml_doc, os.environ["CERTIFIED"], os.environ["CERTIFIED_PASSWORD"])
 
     print(lxml.etree.tostring(xml_doc, pretty_print=True))
+
+def insert_signature(root, pfx, password):
+    pfx_file = open(pfx, "rb")
+    pfx = crypto.load_pkcs12(pfx_file.read(), password)
+    # PEM formatted private key
+    key = crypto.dump_privatekey(crypto.FILETYPE_PEM,
+                                 pfx.get_privatekey())
+    # PEM formatted certificate
+    cert = crypto.dump_certificate(crypto.FILETYPE_PEM,
+                                   pfx.get_certificate())
+
+    pfx_file.close()
+    cert = cert.decode()
+    key = key.decode()
+    signed_root = XMLSigner().sign(root, key=key, cert=cert)
+    return signed_root

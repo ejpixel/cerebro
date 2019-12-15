@@ -3,6 +3,7 @@ from flask import session, request, redirect, url_for, flash
 from enum import Enum
 import datetime
 import sapixel
+import nfe
 
 
 class Roles(Enum):
@@ -137,3 +138,26 @@ def new_calendar_event(model, start_date, end_date, client_store_name, client_na
     title = f" {title} {client_store_name} de {client_name}"
     description = " pelo serviço " + short_description
     sapixel.new_calendar_event_from_model(model_name=model, start_date=start_date, end_date=end_date, title=title, description=description)
+
+
+def new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, baseCalcSubst):
+    client_neighborhood, price, cep, email, client_cpf, client_cnpj, street, store_name, service_description = list(db.engine.execute("SELECT neighborhood, total_price, cep, email, cpf, cnpj, street, store_name, description from services INNER JOIN clients ON services.client_id=clients.id WHERE services.id=%s", service_id).first())
+    args = {
+        "aliquota": aliquota,
+        "cst": cst,
+        "cnae": cnae,
+        "cfps": cfps,
+        "aedf": aedf,
+        "baseCalcSubst": baseCalcSubst,
+        "date": date,
+        "quantity": quantity,
+        "client_neighborhood": client_neighborhood,
+        "price": price,
+        "client_cep": cep,
+        "client_email": email,
+        "client_cpf_or_cnpj": client_cpf if not client_cnpj else client_cnpj,
+        "client_street": street,
+        "client_store_name": store_name,
+        "service_description": service_description["short_description"]
+    }
+    nfe.gen_xml_payment(**args)

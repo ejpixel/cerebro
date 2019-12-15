@@ -5,3 +5,4 @@ contract.docx
 .idea/
 *.json
 *.iml
+*.pfx

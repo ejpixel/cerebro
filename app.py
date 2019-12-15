@@ -198,10 +198,18 @@ def add_payment():
     price = float(request.form["price"])
     quantity = int(request.form["quantity"])
     service_id = int(request.form["service-id"])
+    date = request.form["date"]
+    aliquota = float(request.form["aliquota"])
+    cst = int(request.form["cst"])
+    cnae = int(request.form["cnae"])
+    cfps = int(request.form["cfps"])
+    aedf = int(request.form["aedf"])
+    baseCalcSubst = int(request.form["baseCalcSubst"])
+
     for i in range(quantity):
         payment_count = db.engine.execute("SELECT count(*) from payments WHERE service_id=%s", service_id).first()[0]
         service_payment = db.engine.execute("SELECT payment from services WHERE id=%s", service_id).first()[0]
-        if payment_count < service_payment:
+        if payment_count + quantity <= service_payment:
             db.engine.execute("INSERT INTO payments(payment, price, service_id) VALUES(%s, %s, %s)", payment + i, price, service_id)
             client_id, description = list(db.engine.execute("SELECT client_id, description FROM services WHERE id=%s", service_id).first())
             store_name, client_name = list(db.engine.execute("SELECT store_name, client_name from clients WHERE id=%s",
@@ -209,7 +217,9 @@ def add_payment():
             event_payments(store_name, client_name, description["short_description"], payment_count + 1)
         else:
             flash(f"Cannot add more payments to {service_id}. Limit exceeded")
+            return redirect(url_for("contracts_manager"))
 
+    new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, baseCalcSubst)
     first_payment = db.engine.execute("SELECT first_payment FROM services WHERE id=%s", service_id).first()[0]
     if first_payment == None:
         db.engine.execute("UPDATE services SET first_payment=now() WHERE id=%s", service_id)
