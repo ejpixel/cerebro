@@ -34,11 +34,12 @@ def get_token(client_id, client_secret, username, password, env):
 
 def new_payment(token, xml_as_string):
     header = {"Authorization": f"Bearer {token}"}
-    requests.post("", data=xml_as_string, header=header)
+    response = requests.post("http://nfps-e-hml.pmf.sc.gov.br/api/v1/processamento/notas/valida-processamento", data=xml_as_string, header=header)
+    print(response.text())
 
 
 def gen_xml_payment(client_neighborhood, price, client_cep, date, client_email, client_cpf_or_cnpj, client_street, client_store_name, service_description, quantity, aliquota, aedf, cst, cfps, cnae, baseCalcSubst):
-    # token = get_token(os.environ["CLIENT_ID"], os.environ["CLIENT_SECRET"], os.environ["CMC"], os.environ["PASSWORD"])
+    token = get_token(os.environ["CLIENT_ID"], os.environ["CLIENT_SECRET"], os.environ["CMC"], os.environ["PASSWORD"])
     E = lxml.builder.ElementMaker()
     service_items = E.itemServico(
         E.aliquota(str(aliquota * 100)),
@@ -68,7 +69,7 @@ def gen_xml_payment(client_neighborhood, price, client_cep, date, client_email, 
     )
     xml_doc = insert_signature(xml_doc, os.environ["CERTIFIED"], os.environ["CERTIFIED_PASSWORD"])
 
-    print(lxml.etree.tostring(xml_doc, pretty_print=True))
+    new_payment(token, lxml.etree.tostring(xml_doc, pretty_print=True))
 
 def insert_signature(root, pfx, password):
     pfx_file = open(pfx, "rb")
