@@ -5,13 +5,32 @@ $(document).bind("ajaxStop", function () {
 $(document).ready(function() {
 
     $(".edition").hide();
-    $(".clickable").attr("edited", "false");
-    $(".clickable").mouseenter(function(){
-        $(this).find(".edition").fadeIn(100);
-    })
-    $(".clickable").mouseleave(function(){
-        $(this).find(".edition").fadeOut(100);
-    })
+    $(".clickable").attr("edited", "false")
+        .mouseenter(function(){
+            $(this).find(".edition").fadeIn(100);
+        })
+        .mouseleave(function(){
+            $(this).find(".edition").fadeOut(100);
+        })
+        .on("input", function() {
+            $(this).attr("edited", "true");
+        })
+        .on('input', '.number', function() {
+            if (!/^\d+$/.test($(this).text())) {
+                $(this).text($(this).text().replace(/\D/g, ""))
+            }
+        })
+        .on('input', '.float', function() {
+            if (!/^[0-9]+(?:\.[0-9]{1,2})?$/.test($(this).text())) {
+                $(this).text($(this).text().replace(/(?!^[0-9]+(?:\.[0-9]{1,2})?$)/g, ""))
+            }
+        })
+        .on('input', '.text', function() {
+            if (!/^[a-zA-Z0-9]+$/.test($(this).text())) {
+                $(this).text($(this).text().replace(/(?![a-zA-Z]+)/g, ""))
+            }
+        })
+
     $(".edit").on("click", function () {
         let headers = []
         let row = $(this).parent().parent()
@@ -28,26 +47,6 @@ $(document).ready(function() {
             }
         })
     })
-
-    $(".clickable").on("input", function() {
-        $(this).attr("edited", "true");
-    })
-        .on('input', '.number', function() {
-        if (!/^\d+$/.test($(this).text())) {
-            $(this).text($(this).text().replace(/\D/g, ""))
-        }
-    })
-        .on('input', '.float', function() {
-        if (!/^[0-9]+(?:\.[0-9]{1,2})?$/.test($(this).text())) {
-            $(this).text($(this).text().replace(/(?!^[0-9]+(?:\.[0-9]{1,2})?$)/g, ""))
-        }
-    });
-
-    $(".clickable").on('input', '.text', function() {
-        if (!/^[a-zA-Z0-9]+$/.test($(this).text())) {
-            $(this).text($(this).text().replace(/(?![a-zA-Z]+)/g, ""))
-        }
-    });
 
     $(".save").click(function() {
         let modified_list = []
@@ -123,10 +122,16 @@ $(document).ready(function() {
         $(".restore").fadeIn();
     })
 
-    $(".edition").on("click", ".remove-negation", function(){
-        $(this).parent().parent().find("button").each(function(i, e){$(e).fadeIn()})
-        $(this).parent().parent().find(".temp-popup").remove()
-    })
+        .on("click", ".remove-negation", function(){
+            $(this).parent().parent().find("button").each(function(i, e){$(e).fadeIn()})
+            $(this).parent().parent().find(".temp-popup").remove()
+        })
+        .on("click", ".restore", function(){
+            $(this).parent().parent().attr("mark-removed", "false")
+            $(this).parent().parent().attr("mark-accepted", "false")
+            $(this).parent().parent().css("background-color", "")
+            $(this).parent().find("button").each(function(i, e){$(e).fadeIn()})
+            $(this).fadeOut()
 
     $(".accept").on("click", function(){
         $(this).parent().find(".remove").each(function(i, e){$(e).fadeOut()})
@@ -134,14 +139,6 @@ $(document).ready(function() {
         $(this).parent().parent().css("background-color", "green")
         $(this).fadeOut()
         $(".restore").fadeIn();
-    })
-
-        $(".edition").on("click", ".restore", function(){
-        $(this).parent().parent().attr("mark-removed", "false")
-        $(this).parent().parent().attr("mark-accepted", "false")
-        $(this).parent().parent().css("background-color", "")
-        $(this).parent().find("button").each(function(i, e){$(e).fadeIn()})
-        $(this).fadeOut()
     })
 
     getPaymentsDataById()
@@ -182,4 +179,26 @@ $(document).ready(function() {
     })
 
     $("#page-view").on("change", showHideView);
+
+    $("service-id").on("change") {
+        $.ajax({
+            type: "POST",
+            contentType: 'application/json; charset=utf-8',
+            dataType: "json",
+            url: "get_contract_data",
+            data: JSON.stringify({id: $("service-id").val()}),
+            success: function(response) {
+                $("#payment").val(response["payment"]);
+                $("#price").val(response["price"]);
+                $("#quantity").val(response["quantity"]);
+                $("#aliquota").val(response["aliquota"]);
+                $("#cst").val(response["cst"]);
+                $("#cfps").val(response["cfps"]);
+                $("#aedf").val(response["aedf"]);
+                $("#baseCalcSubst").val(response["baseCalcSubst"]);
+            }
+            }
+        });
+    }
+    }
 })

@@ -1,6 +1,5 @@
 import os
-
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask_sqlalchemy import SQLAlchemy as sql
 import hashlib
 from helpers import *
@@ -234,3 +233,25 @@ def remove_contracts():
     for req in complete_request:
         db.engine.execute("UPDATE services SET removed=true WHERE id=%s", req["id"])
     return redirect(url_for("access_manager"))
+
+
+@app.route("/get_contract_data", methods=["POST"])
+@login_required
+@admin_role
+def get_contract_data():
+    req = json.loads(request.get_data().decode("utf-8"))
+    raw_response = list(db.engine.execute("SELECT * FROM service_payment_data WHERE service_id=%s", req["id"]).first())
+
+    if len(raw_response) != 8:
+        raw_response = [""] * 8
+    response = {
+        "service_id": raw_response[1],
+        "aliquota": raw_response[2],
+        "cst": raw_response[3],
+        "cnae": raw_response[4],
+        "cfps": raw_response[5],
+        "aedf": raw_response[6],
+        "baseCalcSubst": raw_response[7]
+    }
+
+    return jsonify(response)
