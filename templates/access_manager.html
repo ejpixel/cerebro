@@ -1,0 +1,106 @@
+ {% extends "layout.html" %}
+{% block title%}
+Gerador contrato
+{% endblock %}
+
+{% block main %}
+     <div class="container p-5">
+         <select name="page-view" id="page-view" class="form-control">
+             <option value="accounts-overview">Manage accounts</option>
+             <option value="roles-overview">Manage roles</option>
+         </select>
+     </div>
+      <div id="accounts-overview">
+        <div class="button-style">
+            <button class="show btn-primary" refer="new-user-form">Add user</button>
+            <div class="from-refer" id="new-user-form">
+                <form action="/access_creation" method="post">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" class="form-control">
+                        </div>
+                         <div class="form-group">
+                            <label for="role" class="text-nowrap">Role</label>
+                            <select name="role" id="role" class="form-control">
+                                {% for role in roles %}
+                                    <option value="{{ role[0] }}">{{ role[1] }}</option>
+                                {% endfor %}
+                            </select>
+                         </div>
+                    </div>
+                    <input type="submit" value="Create user" id="create_user">
+                </form>
+            </div>
+        </div>
+          <div class="table-style">
+            <table class="table table-hover" id="accounts">
+                <thead>
+                    <tr>
+                        <th>username</th>
+                        <th class="editable" type="number">role id</th>
+                        <th>permissions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in accounts %}
+                        <tr class="clickable">
+                            {% for data in account %}
+                                <td>{{ data }}</td>
+                            {% endfor %}
+                            <td class="edition">
+                                <button class="btn btn-light btn-sm edit">Edit</button>
+                                <button class="btn btn-info btn-sm restore">restore</button>
+                                <button class="btn btn-danger btn-sm remove">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <input type="submit" class="save" value="Save">
+          </div>
+        </div>
+       <div id="roles-overview">
+            <div class="button-style">
+                <button class="show btn-primary" refer="new-role-form">Add role</button>
+                <div class="from-refer" id="new-role-form">
+                    <form action="/role_creation" method="post">
+                        <div class="form-group">
+                            <label for="permissions">Permissions</label>
+                            <input type="text" id="permissions" name="permissions" placeholder="Permission1, Permission2..." class="form-control">
+                             <input type="submit" value="Create role" id="create_role">
+                        </div>
+                    </form>
+                </div>
+            </div>
+           <div class="table-style">
+               <table class="table table-hover" id="roles">
+                <thead>
+                    <tr>
+                        <th>id</th>
+                        <th class="editable" type="text">permissions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for role in roles %}
+                        <tr class="clickable">
+                            {% for data in role %}
+                                <td>{{ data }}</td>
+                            {% endfor %}
+                            <td class="edition">
+                                <button class="btn btn-light btn-sm edit">Edit</button>
+                                <button class="btn btn-info btn-sm restore">restore</button>
+                                <button class="btn btn-danger btn-sm remove">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+               <input type="submit" class="save" value="Save">
+           </div>
+        </div>
+{% endblock %}

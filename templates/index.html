@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title%}
+Gerador contrato
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <p>Contracts: {% if contracts %}{{ contracts }}{% else %}0{% endif %}</p>
+        <p>Contracts with no payments: {% if no_payments_contracts %}{{ no_payments_contracts }}{% else %}0{% endif %}</p>
+        <p>Contracts not accepted: {% if no_accepted_contracts %}{{ no_accepted_contracts }}{% else %}0{% endif %}</p>
+        <p>Clients: {% if clients %}{{ clients }}{% else %}0{% endif %}</p>
+    </div>
+{% endblock %}

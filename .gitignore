@@ -1,0 +1,9 @@
+.vscode/
+venv/
+__pycache__/
+contract.docx
+.idea/
+*.json
+*.iml
+*.pfx
+.env

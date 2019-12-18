@@ -1,0 +1,119 @@
+ {% extends "layout.html" %}
+{% block title%}
+Contracts manager
+{% endblock %}
+
+{% block main %}
+    <div class="button-style">
+        <button class="show btn-primary" refer="add-payment">Add payment</button>
+        <div id="add-payment" class="from-refer">
+        <form action="/add_payment" method="POST">
+
+            <div class="form-row">
+
+               <div class="form-group">
+                    <label for="service-id" class="text-nowrap">Id</label>
+                    <select name="service-id" id="service-id" class="form-control">
+                        {% for contract in contracts %}
+                        <option value="{{ contract[0] }}">{{ contract[0] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment">Payment number</label>
+                    <input type="number" id="payment" name="payment" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input type="number" min="0" step="0.01" id="price" name="price" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" name="quantity" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" id="date" name="date" class="form-control">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="aliquota">Aliquota</label>
+                    <input type="number" min="0" step="0.01" id="aliquota" name="aliquota" placeholder="Dividido por cem, separado por ponto" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="cst">CST</label>
+                    <input type="number" id="cst" name="cst" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="cnae">CNAE</label>
+                    <input type="number" id="cnae" name="cnae" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="cfps">CFPS</label>
+                    <input type="number" id="cfps" name="cfps" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="aedf">AEDF</label>
+                    <input type="number" id="aedf" name="aedf" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="baseCalcSubst">Base cálculo de subst.</label>
+                    <input type="number" id="baseCalcSubst" name="baseCalcSubst" class="form-control">
+                </div>
+
+            </div>
+            <input type="submit" value="Add payment" class="btn btn-success btn-sm">
+        </form>
+    </div>
+    </div>
+
+    <div id="contracts-overview" class="table-style">
+        <table class="table table-hover" id="contracts">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>user</th>
+                    <th class="editable" type="text">type</th>
+                    <th class="editable" type="number">deadline</th>
+                    <th class="editable" type="float">price</th>
+                    <th class="editable" type="float">payment price</th>
+                    <th class="editable" type="number">payments</th>
+                    <th class="editable" type="text">short description</th>
+                    <th class="editable" type="text">service list</th>
+                    <th>generation date</th>
+                    <th>acceptance date</th>
+                    <th>first payment date</th>
+                    <th class="editable" type="number">client id</th>
+                    <th>current payments</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contract in contracts %}
+                    <tr class="clickable">
+                        {% for data in contract %}
+                            <td>{{ data }}</td>
+                        {% endfor %}
+                        <td class="edition">
+                            <button class="btn btn-light btn-sm edit">Edit</button>
+                            <button class="btn btn-info btn-sm accept">Accept</button>
+                            <button class="btn btn-info btn-sm restore">restore</button>
+                            <button class="btn btn-danger btn-sm remove">Remove</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <input type="submit" class="save" value="Save">
+    </div>
+ {% endblock %}
