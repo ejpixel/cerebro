@@ -73,7 +73,7 @@ def gen_xml_payment(client_neighborhood, price, client_cep, date_iso_format, cli
     xml_doc = insert_signature(xml_doc, os.environ["CERTIFIED"], os.environ["CERTIFIED_PASSWORD"])
 
     print(lxml.etree.tostring(xml_doc, pretty_print=True).decode())
-    new_payment(token, lxml.etree.tostring(xml_doc, pretty_print=True).decode())
+    new_payment(token, lxml.etree.tostring(xml_doc, pretty_print=True, encoding=str))
 
 def insert_signature(root, pfx, password):
     pfx_file = open(pfx, "rb")
