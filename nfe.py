@@ -69,20 +69,13 @@ def gen_xml_payment(client_neighborhood, price, client_cep, date, client_email, 
     )
     xml_doc = insert_signature(xml_doc, os.environ["CERTIFIED"], os.environ["CERTIFIED_PASSWORD"])
 
-    new_payment(token, lxml.etree.tostring(xml_doc, pretty_print=True))
+    new_payment(token, lxml.etree.tostring(xml_doc))
 
 def insert_signature(root, pfx, password):
-    pfx_file = open(pfx, "rb")
-    pfx = crypto.load_pkcs12(pfx_file.read(), password)
-    # PEM formatted private key
-    key = crypto.dump_privatekey(crypto.FILETYPE_PEM,
-                                 pfx.get_privatekey())
-    # PEM formatted certificate
-    cert = crypto.dump_certificate(crypto.FILETYPE_PEM,
-                                   pfx.get_certificate())
+    with open(pfx, "rb") as pfx_file:
+        pfx = crypto.load_pkcs12(pfx_file.read(), password)
 
-    pfx_file.close()
-    cert = cert.decode()
-    key = key.decode()
-    signed_root = XMLSigner().sign(root, key=key, cert=cert)
-    return signed_root
+        key = crypto.dump_privatekey(crypto.FILETYPE_PEM, pfx.get_privatekey())
+        cert = crypto.dump_certificate(crypto.FILETYPE_PEM, pfx.get_certificate())
+
+        return XMLSigner().sign(root, key=key.decode(), cert=cert.decode())
