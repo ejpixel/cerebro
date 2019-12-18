@@ -149,7 +149,7 @@ def new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, bas
         "cfps": cfps,
         "aedf": aedf,
         "baseCalcSubst": baseCalcSubst,
-        "date": date,
+        "date_iso_format": date,
         "quantity": quantity,
         "client_neighborhood": client_neighborhood,
         "price": price,

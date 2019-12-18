@@ -4,6 +4,8 @@ from hashlib import md5
 import lxml.etree
 import lxml.builder
 import os
+
+import signxml
 from OpenSSL import crypto
 from signxml import XMLSigner, XMLVerifier
 
@@ -33,13 +35,14 @@ def get_token(client_id, client_secret, username, password, env):
 
 
 def new_payment(token, xml_as_string):
-    header = {"Authorization": f"Bearer {token}"}
-    response = requests.post("http://nfps-e-hml.pmf.sc.gov.br/api/v1/processamento/notas/valida-processamento", data=xml_as_string, header=header)
-    print(response.text())
+    # print(token)
+    # header = {"Authorization": f"Bearer {token}"}
+    response = requests.post("http://nfps-e-hml.pmf.sc.gov.br/api/v1/processamento/notas/valida-processamento", data=xml_as_string)#, headers=header)
+    print(response.text)
 
 
-def gen_xml_payment(client_neighborhood, price, client_cep, date, client_email, client_cpf_or_cnpj, client_street, client_store_name, service_description, quantity, aliquota, aedf, cst, cfps, cnae, baseCalcSubst):
-    token = get_token(os.environ["CLIENT_ID"], os.environ["CLIENT_SECRET"], os.environ["CMC"], os.environ["PASSWORD"])
+def gen_xml_payment(client_neighborhood, price, client_cep, date_iso_format, client_email, client_cpf_or_cnpj, client_street, client_store_name, service_description, quantity, aliquota, aedf, cst, cfps, cnae, baseCalcSubst):
+    token = get_token(os.environ["CLIENT_ID"], os.environ["CLIENT_SECRET"], os.environ["CMC"], os.environ["PASSWORD"], "prod")
     E = lxml.builder.ElementMaker()
     service_items = E.itemServico(
         E.aliquota(str(aliquota * 100)),
@@ -51,13 +54,13 @@ def gen_xml_payment(client_neighborhood, price, client_cep, date, client_email, 
         E.valorTotal(str(price * quantity)),
         E.valorUnitario(str(price))
     )
-    xml_doc = E.xmlNfpse(
+    xml_doc = E.xmlProcessamentoNfpse(
         E.bairroTomador(client_neighborhood),
         E.baseCalculo(str(price * quantity)),
         E.baseCalculoSubstituicao(str(baseCalcSubst)),
         E.cfps(str(cfps)),
         E.codigoPostalTomador(client_cep),
-        E.dataEmissao(date),
+        E.dataEmissao(date_iso_format),
         E.emailTomador(client_email),
         E.identificacaoTomador(client_cpf_or_cnpj),
         E.itensServico(service_items),
@@ -69,7 +72,8 @@ def gen_xml_payment(client_neighborhood, price, client_cep, date, client_email, 
     )
     xml_doc = insert_signature(xml_doc, os.environ["CERTIFIED"], os.environ["CERTIFIED_PASSWORD"])
 
-    new_payment(token, lxml.etree.tostring(xml_doc))
+    new_payment(token, lxml.etree.tostring(xml_doc, encoding="unicode", method="xml"))
+    print(lxml.etree.tostring(xml_doc, encoding="unicode", method="xml"))
 
 def insert_signature(root, pfx, password):
     with open(pfx, "rb") as pfx_file:
@@ -78,4 +82,6 @@ def insert_signature(root, pfx, password):
         key = crypto.dump_privatekey(crypto.FILETYPE_PEM, pfx.get_privatekey())
         cert = crypto.dump_certificate(crypto.FILETYPE_PEM, pfx.get_certificate())
 
-        return XMLSigner().sign(root, key=key.decode(), cert=cert.decode())
+        return XMLSigner(method=signxml.methods.enveloped, signature_algorithm="rsa-sha1",
+                         digest_algorithm='sha1',
+                         c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315').sign(root, key=key, cert=cert)

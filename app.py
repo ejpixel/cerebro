@@ -231,10 +231,13 @@ def add_payment():
             flash(f"Cannot add more payments to {service_id}. Limit exceeded")
             return redirect(url_for("contracts_manager"))
 
+    db.engine.execute("INSERT INTO service_payment_data (service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst) VALUES(%s, %s, %s, %s, %s, %s, %s)", service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst)
     new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, baseCalcSubst)
     first_payment = db.engine.execute("SELECT first_payment FROM services WHERE id=%s", service_id).first()[0]
     if first_payment == None:
         db.engine.execute("UPDATE services SET first_payment=now() WHERE id=%s", service_id)
+
+    flash("Success")
 
     return redirect(url_for("contracts_manager"))
 
@@ -253,10 +256,11 @@ def remove_contracts():
 @admin_role
 def get_contract_data():
     req = json.loads(request.get_data().decode("utf-8"))
-    raw_response = list(db.engine.execute("SELECT * FROM service_payment_data WHERE service_id=%s", req["id"]).first())
-
-    if len(raw_response) != 8:
+    raw_response = db.engine.execute("SELECT * FROM service_payment_data WHERE service_id=%s", req["id"]).first()
+    if raw_response is None:
         raw_response = [""] * 8
+    else:
+        raw_response = list(raw_response)
     response = {
         "service_id": raw_response[1],
         "aliquota": raw_response[2],
