@@ -10,10 +10,6 @@ app = Flask(__name__)
 
 app.secret_key = os.environ["SECRET_KEY"]
 
-
-app.config["SESSION_COOKIE_SECURE"] = True
-
-
 try:
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URI"]
 
@@ -23,10 +19,12 @@ except KeyError:
 db = sql(app)
 start_db(db)
 
+env = os.getenv("CEREBRO_ENV", "prod") if os.getenv("CEREBRO_ENV", "prod") in ["dev", "prod"] else "dev"
 
 @app.before_request
 def before_request():
-    if not request.is_secure():
+    if not request.is_secure and env == "prod":
+        app.config["SESSION_COOKIE_SECURE"] = True
         url = request.url.replace('http://', 'https://', 1)
         code = 301
         return redirect(url, code=code)
@@ -221,7 +219,7 @@ def add_payment():
     for i in range(quantity):
         payment_count = db.engine.execute("SELECT count(*) from payments WHERE service_id=%s", service_id).first()[0]
         service_payment = db.engine.execute("SELECT payment from services WHERE id=%s", service_id).first()[0]
-        if payment_count + quantity <= service_payment:
+        if True:#payment_count + quantity <= service_payment:
             db.engine.execute("INSERT INTO payments(payment, price, service_id) VALUES(%s, %s, %s)", payment + i, price, service_id)
             client_id, description = list(db.engine.execute("SELECT client_id, description FROM services WHERE id=%s", service_id).first())
             store_name, client_name = list(db.engine.execute("SELECT store_name, client_name from clients WHERE id=%s",
@@ -232,7 +230,7 @@ def add_payment():
             return redirect(url_for("contracts_manager"))
 
     db.engine.execute("INSERT INTO service_payment_data (service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst) VALUES(%s, %s, %s, %s, %s, %s, %s)", service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst)
-    new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, baseCalcSubst)
+    new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, env)
     first_payment = db.engine.execute("SELECT first_payment FROM services WHERE id=%s", service_id).first()[0]
     if first_payment == None:
         db.engine.execute("UPDATE services SET first_payment=now() WHERE id=%s", service_id)

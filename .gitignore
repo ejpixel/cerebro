@@ -6,3 +6,4 @@ contract.docx
 *.json
 *.iml
 *.pfx
+.env
