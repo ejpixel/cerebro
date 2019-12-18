@@ -219,7 +219,7 @@ def add_payment():
     for i in range(quantity):
         payment_count = db.engine.execute("SELECT count(*) from payments WHERE service_id=%s", service_id).first()[0]
         service_payment = db.engine.execute("SELECT payment from services WHERE id=%s", service_id).first()[0]
-        if True:#payment_count + quantity <= service_payment:
+        if payment_count + quantity <= service_payment:
             db.engine.execute("INSERT INTO payments(payment, price, service_id) VALUES(%s, %s, %s)", payment + i, price, service_id)
             client_id, description = list(db.engine.execute("SELECT client_id, description FROM services WHERE id=%s", service_id).first())
             store_name, client_name = list(db.engine.execute("SELECT store_name, client_name from clients WHERE id=%s",
