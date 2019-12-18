@@ -72,23 +72,16 @@ def gen_xml_payment(client_neighborhood, price, client_cep, date_iso_format, cli
     )
     xml_doc = insert_signature(xml_doc, os.environ["CERTIFIED"], os.environ["CERTIFIED_PASSWORD"])
 
-    print(lxml.etree.tostring(xml_doc, pretty_print=True).decode())
-    new_payment(token, lxml.etree.tostring(xml_doc, pretty_print=True, encoding=str))
+    new_payment(token, lxml.etree.tostring(xml_doc, encoding="unicode", method="xml"))
+    print(lxml.etree.tostring(xml_doc, encoding="unicode", method="xml"))
 
 def insert_signature(root, pfx, password):
-    pfx_file = open(pfx, "rb")
-    pfx = crypto.load_pkcs12(pfx_file.read(), password)
-    # PEM formatted private key
-    key = crypto.dump_privatekey(crypto.FILETYPE_PEM,
-                                 pfx.get_privatekey())
-    # PEM formatted certificate
-    cert = crypto.dump_certificate(crypto.FILETYPE_PEM,
-                                   pfx.get_certificate())
+    with open(pfx, "rb") as pfx_file:
+        pfx = crypto.load_pkcs12(pfx_file.read(), password)
 
-    pfx_file.close()
-    cert = cert
-    key = key
-    signed_root = XMLSigner(method=signxml.methods.enveloped, signature_algorithm="rsa-sha1",
-                            digest_algorithm='sha1',
-                            c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315').sign(root, key=key, cert=cert)
-    return signed_root
+        key = crypto.dump_privatekey(crypto.FILETYPE_PEM, pfx.get_privatekey())
+        cert = crypto.dump_certificate(crypto.FILETYPE_PEM, pfx.get_certificate())
+
+        return XMLSigner(method=signxml.methods.enveloped, signature_algorithm="rsa-sha1",
+                         digest_algorithm='sha1',
+                         c14n_algorithm='http://www.w3.org/TR/2001/REC-xml-c14n-20010315').sign(root, key=key, cert=cert)

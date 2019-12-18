@@ -10,6 +10,10 @@ app = Flask(__name__)
 
 app.secret_key = os.environ["SECRET_KEY"]
 
+
+app.config["SESSION_COOKIE_SECURE"] = True
+
+
 try:
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["DATABASE_URI"]
 
@@ -18,6 +22,15 @@ except KeyError:
 
 db = sql(app)
 start_db(db)
+
+
+@app.before_request
+def before_request():
+    if not request.is_secure():
+        url = request.url.replace('http://', 'https://', 1)
+        code = 301
+        return redirect(url, code=code)
+
 
 @app.route("/access", methods=["GET", "POST"])
 def access():
