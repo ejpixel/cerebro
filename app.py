@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy as sql
 import hashlib
 from helpers import *
@@ -230,14 +230,17 @@ def add_payment():
             return redirect(url_for("contracts_manager"))
 
     db.engine.execute("INSERT INTO service_payment_data (service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst) VALUES(%s, %s, %s, %s, %s, %s, %s)", service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst)
-    new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, env)
+    xml = new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, env)
     first_payment = db.engine.execute("SELECT first_payment FROM services WHERE id=%s", service_id).first()[0]
     if first_payment == None:
         db.engine.execute("UPDATE services SET first_payment=now() WHERE id=%s", service_id)
 
     flash("Success")
 
-    return redirect(url_for("contracts_manager"))
+    return Response(
+        xml,
+        mimetype="application/xml",
+        headers={"Content-disposition": f"attachment; filename={client_name + '_parcela_' + str(payment_count + quantity)}.xml"})
 
 @app.route("/remove_contracts", methods=["POST"])
 @login_required

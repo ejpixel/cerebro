@@ -160,4 +160,4 @@ def new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, bas
         "client_store_name": store_name,
         "service_description": service_description["short_description"]
     }
-    nfe.gen_xml_payment(**args)
+    return nfe.gen_xml_payment(**args)

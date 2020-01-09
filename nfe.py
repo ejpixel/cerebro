@@ -38,6 +38,7 @@ def new_payment(token, xml_as_string, env):
     header = {"Authorization": f"Bearer {token}"}
     response = requests.post(envs[env], data=xml_as_string, headers=header)
     print(response.text)
+    return response.text
 
 
 def gen_xml_payment(client_neighborhood, price, client_cep, date_iso_format, client_email, client_cpf_or_cnpj, client_street, client_store_name, service_description, quantity, aliquota, aedf, cst, cfps, cnae, baseCalcSubst, env):
@@ -71,7 +72,7 @@ def gen_xml_payment(client_neighborhood, price, client_cep, date_iso_format, cli
     )
     xml_doc = insert_signature(xml_doc, os.environ["CERTIFIED"], os.environ["CERTIFIED_PASSWORD"])
 
-    new_payment(token, lxml.etree.tostring(xml_doc, encoding="unicode", method="xml"), env)
+    return new_payment(token, lxml.etree.tostring(xml_doc, encoding="unicode", method="xml"), env)
 
 def insert_signature(root, pfx, password):
     with open(pfx, "rb") as pfx_file:
