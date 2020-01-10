@@ -22,54 +22,59 @@ Contracts manager
 
                 <div class="form-group">
                     <label for="payment">Payment number</label>
-                    <input type="number" id="payment" name="payment" class="form-control">
+                    <input type="number" id="payment" name="payment" class="form-control" required>
                 </div>
 
                 <div class="form-group">
                     <label for="price">Price</label>
-                    <input type="number" min="0" step="0.01" id="price" name="price" class="form-control">
+                    <input type="number" min="0" step="0.01" id="price" name="price" class="form-control" required>
                 </div>
 
                 <div class="form-group">
                     <label for="quantity">Quantity</label>
-                    <input type="number" id="quantity" name="quantity" class="form-control">
+                    <input type="number" id="quantity" name="quantity" class="form-control" required>
                 </div>
 
                 <div class="form-group">
                     <label for="date">Date</label>
-                    <input type="date" id="date" name="date" class="form-control">
+                    <input type="date" id="date" name="date" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="aliquota">Aliquota</label>
+                    <input type="number" min="0" step="0.01" id="aliquota" name="aliquota" placeholder="Dividido por cem, separado por ponto" class="form-control" required>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="aliquota">Aliquota</label>
-                    <input type="number" min="0" step="0.01" id="aliquota" name="aliquota" placeholder="Dividido por cem, separado por ponto" class="form-control">
-                </div>
-
-                <div class="form-group">
                     <label for="cst">CST</label>
-                    <input type="number" id="cst" name="cst" class="form-control">
+                    <input type="number" id="cst" name="cst" class="form-control" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="cnae">CNAE</label>
-                    <input type="number" id="cnae" name="cnae" class="form-control">
+                    <label for="cnae">Id CNAE</label>
+                    <input type="number" id="cnae" name="cnae" class="form-control" required>
                 </div>
 
                 <div class="form-group">
                     <label for="cfps">CFPS</label>
-                    <input type="number" id="cfps" name="cfps" class="form-control">
+                    <input type="number" id="cfps" name="cfps" class="form-control" required>
                 </div>
 
                 <div class="form-group">
                     <label for="aedf">AEDF</label>
-                    <input type="number" id="aedf" name="aedf" class="form-control">
+                    <input type="number" id="aedf" name="aedf" class="form-control" required>
                 </div>
 
                 <div class="form-group">
                     <label for="baseCalcSubst">Base cálculo de subst.</label>
-                    <input type="number" id="baseCalcSubst" name="baseCalcSubst" class="form-control">
+                    <input type="number" id="baseCalcSubst" name="baseCalcSubst" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="codm">cod. município</label>
+                    <input type="number" id="codm" name="codm" class="form-control" required>
                 </div>
 
             </div>

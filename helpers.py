@@ -140,9 +140,11 @@ def new_calendar_event(model, start_date, end_date, client_store_name, client_na
     sapixel.new_calendar_event_from_model(model_name=model, start_date=start_date, end_date=end_date, title=title, description=description)
 
 
-def new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, env):
-    client_neighborhood, price, cep, email, client_cpf, client_cnpj, street, store_name, service_description = list(db.engine.execute("SELECT neighborhood, total_price, cep, email, cpf, cnpj, street, store_name, description from services INNER JOIN clients ON services.client_id=clients.id WHERE services.id=%s", service_id).first())
+def new_nfe(db, service_id, date, quantity, price, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, codm, env):
+    client_neighborhood, uf, cep, email, client_cpf, client_cnpj, street, store_name, service_description = list(db.engine.execute("SELECT neighborhood, state, cep, email, cpf, cnpj, street, store_name, description from services INNER JOIN clients ON services.client_id=clients.id WHERE services.id=%s", service_id).first())
     args = {
+        "codm": codm,
+        "uf": uf,
         "aliquota": aliquota,
         "cst": cst,
         "cnae": cnae,
@@ -160,4 +162,4 @@ def new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, bas
         "client_store_name": store_name,
         "service_description": service_description["short_description"]
     }
-    nfe.gen_xml_payment(**args)
+    return nfe.gen_xml_payment(env=env, **args)
