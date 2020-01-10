@@ -152,7 +152,7 @@ $(document).ready(function() {
         $("#contracts").find("tbody tr").each(function(i, e){
             if ($(e).find("td:first").html() === id) {
                 $("#payment").val(parseInt($(e).find("td").eq(13).html(), 10) + 1);
-                $("#price").val($(e).find("td").eq(4).html())
+                $("#price").val($(e).find("td").eq(5).html())
                 $("#quantity").val(1)
             }
         })
@@ -194,6 +194,7 @@ $(document).ready(function() {
                 $("#cfps").val(response["cfps"]);
                 $("#aedf").val(response["aedf"]);
                 $("#baseCalcSubst").val(response["baseCalcSubst"]);
+                $("#codm").val(response["codm"]);
             }
         })
     }

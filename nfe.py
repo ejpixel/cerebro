@@ -11,15 +11,21 @@ from signxml import XMLSigner, XMLVerifier
 
 
 envs = {
-    "prod": "https://nfps-e.pmf.sc.gov.br/api/v1/autenticacao/oauth/token",
-    "dev": "http://nfps-e-hml.pmf.sc.gov.br/api/v1/autenticacao/oauth/token"
+    "token": {
+        "prod": "https://nfps-e.pmf.sc.gov.br/api/v1/autenticacao/oauth/token",
+        "dev": "http://nfps-e-hml.pmf.sc.gov.br/api/v1/autenticacao/oauth/token"
+    },
+    "api": {
+        "prod": "https://nfps-e.pmf.sc.gov.br/api/v1",
+        "dev": "http://nfps-e-hml.pmf.sc.gov.br/api/v1"
+    }
 }
 
 
 def get_token(client_id, client_secret, username, password, env):
     password_valid = md5(password.encode())
     password_req = password_valid.hexdigest()
-    url = envs[env]
+    url = envs["token"]["prod"]
     auth = f"{client_id}:{client_secret}".encode("utf-8")
     encoded_auth = base64.b64encode(auth).decode("utf-8")
     header = {"Content-Type": "application/x-www-form-urlencoded", "Authorization": f"Basic {encoded_auth}"}
@@ -33,19 +39,17 @@ def get_token(client_id, client_secret, username, password, env):
     response = requests.post(url=url, data=body, headers=header)
     return response.json()["access_token"]
 
-
 def new_payment(token, xml_as_string, env):
     header = {"Authorization": f"Bearer {token}"}
-    response = requests.post(envs[env], data=xml_as_string, headers=header)
-    print(response.text)
+    response = requests.post(envs["api"]["prod"] + "/processamento/notas/processa", data=xml_as_string, headers=header)
     return response.text
 
 
-def gen_xml_payment(client_neighborhood, price, client_cep, date_iso_format, client_email, client_cpf_or_cnpj, client_street, client_store_name, service_description, quantity, aliquota, aedf, cst, cfps, cnae, baseCalcSubst, env):
+def gen_xml_payment(client_neighborhood, codm, uf, price, client_cep, date_iso_format, client_email, client_cpf_or_cnpj, client_street, client_store_name, service_description, quantity, aliquota, aedf, cst, cfps, cnae, baseCalcSubst, env):
     token = get_token(os.environ["CLIENT_ID"], os.environ["CLIENT_SECRET"], os.environ["CMC"], os.environ["PASSWORD"], "prod")
     E = lxml.builder.ElementMaker()
     service_items = E.itemServico(
-        E.aliquota(str(aliquota * 100)),
+        E.aliquota(str(aliquota)),
         E.baseCalculo(str(price * quantity)),
         E.cst(str(cst)),
         E.descricaoServico(service_description),
@@ -55,6 +59,8 @@ def gen_xml_payment(client_neighborhood, price, client_cep, date_iso_format, cli
         E.valorUnitario(str(price))
     )
     xml_doc = E.xmlProcessamentoNfpse(
+        E.codigoMunicipioTomador(codm),
+        E.ufTomador(uf),
         E.bairroTomador(client_neighborhood),
         E.baseCalculo(str(price * quantity)),
         E.baseCalculoSubstituicao(str(baseCalcSubst)),

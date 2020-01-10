@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, jsonify, Response
+from flask import Flask, render_template, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy as sql
 import hashlib
 from helpers import *
@@ -17,12 +17,12 @@ except KeyError:
     raise ValueError("É necessário definir variável de ambiente DATABASE_URI com a chave de acesso do banco de dados.")
 
 db = sql(app)
-start_db(db)
 
 env = os.getenv("CEREBRO_ENV", "prod") if os.getenv("CEREBRO_ENV", "prod") in ["dev", "prod"] else "dev"
 
 @app.before_request
 def before_request():
+    start_db(db)
     if not request.is_secure and env == "prod":
         app.config["SESSION_COOKIE_SECURE"] = True
         url = request.url.replace('http://', 'https://', 1)
@@ -214,6 +214,7 @@ def add_payment():
     cnae = int(request.form["cnae"])
     cfps = int(request.form["cfps"])
     aedf = int(request.form["aedf"])
+    codm = request.form["codm"]
     baseCalcSubst = int(request.form["baseCalcSubst"])
 
     for i in range(quantity):
@@ -229,18 +230,22 @@ def add_payment():
             flash(f"Cannot add more payments to {service_id}. Limit exceeded")
             return redirect(url_for("contracts_manager"))
 
-    db.engine.execute("INSERT INTO service_payment_data (service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst) VALUES(%s, %s, %s, %s, %s, %s, %s)", service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst)
-    xml = new_nfe(db, service_id, date, quantity, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, env)
+    select_result = db.engine.execute("SELECT * FROM service_payment_data WHERE service_id = %s AND aliquota = %s AND cst = %s AND cnae = %s AND cfps = %s AND aedf = %s AND baseCalcSubst = %s AND codm = %s", service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, codm).first()
+    if select_result is None:
+        db.engine.execute("INSERT INTO service_payment_data (service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, codm) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)", service_id, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, codm)
+    xml = new_nfe(db, service_id, date, quantity, price, aliquota, cst, cnae, cfps, aedf, baseCalcSubst, codm, env)
     first_payment = db.engine.execute("SELECT first_payment FROM services WHERE id=%s", service_id).first()[0]
     if first_payment == None:
         db.engine.execute("UPDATE services SET first_payment=now() WHERE id=%s", service_id)
 
     flash("Success")
 
-    return Response(
-        xml,
-        mimetype="application/xml",
-        headers={"Content-disposition": f"attachment; filename={client_name + '_parcela_' + str(payment_count + quantity)}.xml"})
+    response = make_response(xml)
+    fname = client_name + date
+    response.headers["Content-Disposition"] = f"attachment; filename={fname}.xml"
+    response.headers["mimetype"] = "application/xml"
+
+    return response
 
 @app.route("/remove_contracts", methods=["POST"])
 @login_required
@@ -259,7 +264,7 @@ def get_contract_data():
     req = json.loads(request.get_data().decode("utf-8"))
     raw_response = db.engine.execute("SELECT * FROM service_payment_data WHERE service_id=%s", req["id"]).first()
     if raw_response is None:
-        raw_response = [""] * 8
+        raw_response = [""] * 9
     else:
         raw_response = list(raw_response)
     response = {
@@ -269,7 +274,8 @@ def get_contract_data():
         "cnae": raw_response[4],
         "cfps": raw_response[5],
         "aedf": raw_response[6],
-        "baseCalcSubst": raw_response[7]
+        "baseCalcSubst": raw_response[7],
+        "codm": raw_response[8]
     }
 
     return jsonify(response)
